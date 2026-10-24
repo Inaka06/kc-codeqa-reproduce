@@ -1,0 +1,20 @@
+{
+  "mode": "smoke",
+  "language": "python",
+  "test_size": 4,
+  "metrics": {
+    "BLEU": 0.0,
+    "ROUGE-L": 0.0,
+    "METEOR": 0.0,
+    "EM": 0.0,
+    "F1": 0.0
+  },
+  "paper_test_reference": {
+    "BLEU": 34.86,
+    "ROUGE-L": 30.28,
+    "METEOR": 12.51,
+    "EM": 4.93,
+    "F1": 31.56
+  },
+  "is_full_test": false
+}

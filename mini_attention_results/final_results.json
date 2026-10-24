@@ -1,0 +1,42 @@
+{
+  "hardware": {
+    "device": "cuda",
+    "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "data": {
+    "train_size": 10000,
+    "dev_size": 500,
+    "test_size": 500,
+    "vocab_size": 8000,
+    "max_source": 160,
+    "max_target": 24
+  },
+  "variant_a_plain": {
+    "parameters": 3574592,
+    "training_time_sec": 94.36452211399956,
+    "test_metrics": {
+      "EM": 20.0,
+      "token_F1": 30.735364681486516,
+      "unique_predictions": 122,
+      "top_1_prediction": "yes",
+      "top_1_concentration": 21.0,
+      "total_em_count": 100,
+      "yes_no_em_count": 100,
+      "non_yes_no_em_count": 0
+    }
+  },
+  "variant_b_attention": {
+    "parameters": 3771456,
+    "training_time_sec": 190.7882496250022,
+    "test_metrics": {
+      "EM": 19.8,
+      "token_F1": 32.06225923359241,
+      "unique_predictions": 219,
+      "top_1_prediction": "yes",
+      "top_1_concentration": 20.8,
+      "total_em_count": 99,
+      "yes_no_em_count": 99,
+      "non_yes_no_em_count": 0
+    }
+  }
+}

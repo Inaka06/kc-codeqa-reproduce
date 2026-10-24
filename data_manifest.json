@@ -1,0 +1,108 @@
+{
+  "python": {
+    "train": [
+      {
+        "name": "train.code",
+        "id": "14VtPI--blt6G40p5lv4yer9cXvI9O99P",
+        "size": 16836207
+      },
+      {
+        "name": "train.question",
+        "id": "1OgEUW0DKx1wZicXxMuzw7kbvCvX93r_k",
+        "size": 2279468
+      },
+      {
+        "name": "train.answer",
+        "id": "1dtWO_xDTX1Hhu19S1C3zZCjnXJtu-hmL",
+        "size": 1310948
+      }
+    ],
+    "dev": [
+      {
+        "name": "dev.answer",
+        "id": "1-EKV-Kifi8KTQ2Iim1gdyLKqAMjhZSxD",
+        "size": 211104
+      },
+      {
+        "name": "dev.code",
+        "id": "1kVy4qonwY-n8ePOmwVKcx9E6SVyqYH_u",
+        "size": 2154031
+      },
+      {
+        "name": "dev.question",
+        "id": "1ofqNLaIldtYoO5w7elEwFZBvAqfUtx6n",
+        "size": 273562
+      }
+    ],
+    "test": [
+      {
+        "name": "test.answer",
+        "id": "1b3muDqwFw1lwzBlaRuN1-6dKzXnZgyjE",
+        "size": 210810
+      },
+      {
+        "name": "test.code",
+        "id": "1hb_KauZT24X6sNrVO0K0q8t6TdFnVYW6",
+        "size": 2122036
+      },
+      {
+        "name": "test.question",
+        "id": "1PXuSe5H3LNUxiMMZ1YS9K02iOQGMkw9W",
+        "size": 272866
+      }
+    ]
+  },
+  "java": {
+    "train": [
+      {
+        "name": "train.answer",
+        "id": "1zggaSuVvsfjtAr54gBRL9X445tgtv2yq",
+        "size": 2546624
+      },
+      {
+        "name": "train.code",
+        "id": "1UUk_j-sqlj9ng558N5M79u2FuxsyxuYe",
+        "size": 50769399
+      },
+      {
+        "name": "train.question",
+        "id": "1QSqGCggBK2FgAMxNg2NG8arUt5jhmTZ4",
+        "size": 4561767
+      }
+    ],
+    "dev": [
+      {
+        "name": "dev.code",
+        "id": "1o7dzD3BU_HDQmlFu7fydHg47vbdrqiY7",
+        "size": 6643693
+      },
+      {
+        "name": "dev.question",
+        "id": "1GP14w37AxZ901PLroD_BS3gef5iXdKfB",
+        "size": 559560
+      },
+      {
+        "name": "dev.answer",
+        "id": "112oDzMQs83UOw90Go5k81T1NpcgnqwwL",
+        "size": 423069
+      }
+    ],
+    "test": [
+      {
+        "name": "test.answer",
+        "id": "1g4BehMQ9fijNT-yU8UIqK5sRj90Pyx19",
+        "size": 415398
+      },
+      {
+        "name": "test.code",
+        "id": "1WBqCYWvm4jn9Hyjdz3On3gVEakyyynXW",
+        "size": 6503363
+      },
+      {
+        "name": "test.question",
+        "id": "15Ay0WO74bJzpLiVNw2hgAMT7eg0qrJnh",
+        "size": 557825
+      }
+    ]
+  }
+}

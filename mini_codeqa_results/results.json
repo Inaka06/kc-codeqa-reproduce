@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "purpose": "mini execution demo, not paper reproduction",
+  "parameters": 415312,
+  "device": "cpu",
+  "epochs": 8,
+  "split_sizes": {
+    "train": 256,
+    "dev": 32,
+    "test": 32
+  },
+  "training_seconds": 4.669303333999778,
+  "total_seconds_after_import": 17.119579639998847,
+  "probe_loss_before": 7.568299770355225,
+  "probe_loss_after": 2.92649507522583,
+  "metrics": {
+    "EM": 0.0,
+    "token_F1": 10.109126984126984
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 6.672071556944947,
+      "dev_loss": 4.923724015553792
+    },
+    {
+      "epoch": 2,
+      "train_loss": 4.8641449747478305,
+      "dev_loss": 4.92112037870619
+    },
+    {
+      "epoch": 3,
+      "train_loss": 4.543106545935144,
+      "dev_loss": 4.934538470374213
+    },
+    {
+      "epoch": 4,
+      "train_loss": 4.297611156914154,
+      "dev_loss": 4.953454891840617
+    },
+    {
+      "epoch": 5,
+      "train_loss": 4.047160484296181,
+      "dev_loss": 4.97552834616767
+    },
+    {
+      "epoch": 6,
+      "train_loss": 3.794220088523029,
+      "dev_loss": 5.080009977022807
+    },
+    {
+      "epoch": 7,
+      "train_loss": 3.5333088140850766,
+      "dev_loss": 5.0564490291807385
+    },
+    {
+      "epoch": 8,
+      "train_loss": 3.255511487280572,
+      "dev_loss": 5.146492467986213
+    }
+  ]
+}

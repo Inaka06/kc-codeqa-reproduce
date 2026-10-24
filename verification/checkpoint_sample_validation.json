@@ -1,0 +1,25 @@
+{
+  "mode": "official_checkpoint_sample_validation",
+  "language": "python",
+  "test_size": 4,
+  "metrics": {
+    "BLEU": 59.43369713052068,
+    "ROUGE-L": 60.790094339622634,
+    "METEOR": 22.661608926323996,
+    "EM": 50.0,
+    "F1": 61.53846153846154
+  },
+  "predictions": [
+    "with the given name and owners",
+    "Yes",
+    "in the given bucket",
+    "Yes"
+  ],
+  "references": [
+    "as an owner",
+    "Yes",
+    "in the given buckets default object access control list",
+    "Yes"
+  ],
+  "is_full_test": false
+}

@@ -1,0 +1,109 @@
+{
+  "protocol": {
+    "version": "v2_strictly_controlled",
+    "seed": 42,
+    "train_size": 10000,
+    "dev_size": 500,
+    "test_size": 500,
+    "vocab_size": 8000,
+    "max_source": 160,
+    "max_target": 24
+  },
+  "hardware": {
+    "device": "cuda",
+    "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "baseline_always_yes": {
+    "overall": {
+      "EM": 1.0,
+      "token_F1": 1.0,
+      "em_count": 5
+    },
+    "yes_no": {
+      "gold_total": 8,
+      "gold_yes": 5,
+      "gold_no": 3,
+      "EM": 62.5,
+      "token_F1": 62.5,
+      "em_count": 5
+    },
+    "non_yes_no": {
+      "gold_total": 492,
+      "EM": 0.0,
+      "token_F1": 0.0,
+      "em_count": 0
+    },
+    "diversity": {
+      "unique_predictions": 1,
+      "empty_predictions": 0,
+      "top_1_prediction": "yes",
+      "top_1_concentration": 100.0
+    }
+  },
+  "variant_a_plain": {
+    "parameters": 3574592,
+    "training_time_sec": 67.73820716299997,
+    "inference_time_sec": 0.13729700900012176,
+    "selected_epoch": 4,
+    "test_metrics": {
+      "overall": {
+        "EM": 1.0,
+        "token_F1": 15.216546769317391,
+        "em_count": 5
+      },
+      "yes_no": {
+        "gold_total": 8,
+        "gold_yes": 5,
+        "gold_no": 3,
+        "EM": 62.5,
+        "token_F1": 62.5,
+        "em_count": 5
+      },
+      "non_yes_no": {
+        "gold_total": 492,
+        "EM": 0.0,
+        "token_F1": 14.447710131420111,
+        "em_count": 0
+      },
+      "diversity": {
+        "unique_predictions": 142,
+        "empty_predictions": 0,
+        "top_1_prediction": "the",
+        "top_1_concentration": 13.600000000000001
+      }
+    }
+  },
+  "variant_b_attention": {
+    "parameters": 3771456,
+    "training_time_sec": 152.03426933900028,
+    "inference_time_sec": 0.163759798999763,
+    "selected_epoch": 4,
+    "test_metrics": {
+      "overall": {
+        "EM": 1.0,
+        "token_F1": 15.673384061202489,
+        "em_count": 5
+      },
+      "yes_no": {
+        "gold_total": 8,
+        "gold_yes": 5,
+        "gold_no": 3,
+        "EM": 62.5,
+        "token_F1": 62.5,
+        "em_count": 5
+      },
+      "non_yes_no": {
+        "gold_total": 492,
+        "EM": 0.0,
+        "token_F1": 14.911975671953751,
+        "em_count": 0
+      },
+      "diversity": {
+        "unique_predictions": 94,
+        "empty_predictions": 0,
+        "top_1_prediction": "the",
+        "top_1_concentration": 19.8
+      }
+    }
+  }
+}

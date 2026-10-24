@@ -1,0 +1,16 @@
+{
+  "variant_a": {
+    "variant": "Varian A (Plain GRU)",
+    "step_ms": 25.704170500022073,
+    "throughput_samples_sec": 1244.934163503643,
+    "est_train_epoch_sec": 8.045405366506909,
+    "peak_vram_mb": 280.0087890625
+  },
+  "variant_b": {
+    "variant": "Varian B (GRU+Attention)",
+    "step_ms": 60.61233342225023,
+    "throughput_samples_sec": 527.9453568809989,
+    "est_train_epoch_sec": 18.97166036116432,
+    "peak_vram_mb": 418.44482421875
+  }
+}

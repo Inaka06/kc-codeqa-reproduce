@@ -1,0 +1,29 @@
+{
+  "notebook": "CodeQA_Reproduction.ipynb",
+  "code_cells_executed": 13,
+  "all_cells_succeeded": true,
+  "smoke": {
+    "language": "python",
+    "device": "cpu",
+    "train": 8,
+    "dev": 4,
+    "test": 4,
+    "epochs": 1,
+    "beam": 2
+  },
+  "dataset_files_checked": 18,
+  "qa_counts": {
+    "java": 119778,
+    "python": 70085
+  },
+  "additional_checks": [
+    "CPU beam generation",
+    "CPU forward/backward",
+    "token-weighted gradient accumulation",
+    "all five metric identity checks",
+    "official Python QA checkpoint load and inference on four examples"
+  ],
+  "full_training_executed": false,
+  "full_test_evaluation_executed": false,
+  "results_directory": "/home/inaka/.codex/.chatgpt-projects/g-p-6ac13026f04c8191b97e9f42e77100c4/codeqa_work/runs/python_smoke_20261023_151711"
+}

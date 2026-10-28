@@ -1,0 +1,68 @@
+--- upstream/c2nl/translator/translator.py
++++ compat/c2nl/translator/translator.py
+@@ -87,7 +87,7 @@
+ 
+         # Help functions for working with beams and batches
+         def var(a):
+-            return torch.tensor(a)
++            return a.detach().clone()  # Preserve device when copying an existing tensor.
+ 
+         def rvar(a):
+             return var(a.repeat(beam_size, 1, 1))
+--- upstream/c2nl/translator/beam.py
++++ compat/c2nl/translator/beam.py
+@@ -128,7 +128,7 @@
+ 
+         # best_scores_id is flattened beam x word array, so calculate which
+         # word and beam each score came from
+-        prev_k = best_scores_id / num_words
++        prev_k = best_scores_id // num_words  # Integer beam indices on modern PyTorch.
+         self.prev_ks.append(prev_k)
+         self.next_ys.append((best_scores_id - prev_k * num_words))
+         self.attn.append(attn_out.index_select(0, prev_k))
+--- upstream/c2nl/models/transformer.py
++++ compat/c2nl/models/transformer.py
+@@ -2,7 +2,10 @@
+ import torch.nn as nn
+ import torch.nn.functional as f
+ 
+-from prettytable import PrettyTable
++try:
++    from prettytable import PrettyTable
++except ImportError:
++    PrettyTable = None  # Optional parameter-table display only.
+ from c2nl.modules.char_embedding import CharEmbedding
+ from c2nl.modules.embeddings import Embeddings
+ from c2nl.modules.highway import Highway
+@@ -622,6 +625,8 @@
+         return self.decoder.count_parameters()
+ 
+     def layer_wise_parameters(self):
++        if PrettyTable is None:
++            raise RuntimeError("Install prettytable only to display the optional layer table")
+         table = PrettyTable()
+         table.field_names = ["Layer Name", "Output Shape", "Param #"]
+         table.align["Layer Name"] = "l"
+--- upstream/c2nl/models/seq2seq.py
++++ compat/c2nl/models/seq2seq.py
+@@ -2,7 +2,10 @@
+ import torch.nn as nn
+ import torch.nn.functional as f
+ 
+-from prettytable import PrettyTable
++try:
++    from prettytable import PrettyTable
++except ImportError:
++    PrettyTable = None  # Optional parameter-table display only.
+ from c2nl.modules.char_embedding import CharEmbedding
+ from c2nl.modules.embeddings import Embeddings
+ from c2nl.modules.highway import Highway
+@@ -572,6 +575,8 @@
+         return self.decoder.count_parameters()
+ 
+     def layer_wise_parameters(self):
++        if PrettyTable is None:
++            raise RuntimeError("Install prettytable only to display the optional layer table")
+         table = PrettyTable()
+         table.field_names = ["Layer Name", "Output Shape", "Param #"]
+         table.align["Layer Name"] = "l"

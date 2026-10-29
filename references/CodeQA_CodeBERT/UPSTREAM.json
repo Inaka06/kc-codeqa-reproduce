@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/jadecxliu/CodeQA",
+  "commit": "e0dba3ccb260447096e20ad1704013272512c779",
+  "upstream_sha256": {
+    "model.py": "026bcba862a16767af918776c452430fcf8c1c1860a3c92b8690e7b4fef625ec",
+    "run.py": "ceccac01d4cca7df414c71f41d29ec6a748f72c0272b3959eb95c57c39d9a134"
+  },
+  "vendored_sha256": {
+    "model.py": "5f162b6b675307301cd2221745021611000e3567927388890dcaf0beccfdb03c",
+    "run.py": "ceccac01d4cca7df414c71f41d29ec6a748f72c0272b3959eb95c57c39d9a134"
+  },
+  "notes": "Only beam device allocation patched. run.py is read via AST for preprocessing definitions; original main() is never executed."
+}

@@ -1,0 +1,9 @@
+# Install a CUDA-compatible PyTorch build first; do not replace a working VPS build.
+torch>=2.6
+transformers==4.57.1
+numpy
+nltk
+psutil
+tqdm
+nbformat
+ipykernel

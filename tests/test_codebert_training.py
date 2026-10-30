@@ -1,4 +1,7 @@
 """CPU regression checks; tiny random architecture, not a CodeQA benchmark."""
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
 import copy
 import math
 import json

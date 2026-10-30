@@ -1,17 +1,51 @@
-# CodeQA Seq2seq untuk VPS
+CodeQA untuk VPS
 
-Paket ini berisi notebook, dataset Python, source NeuralCodeSum, dan evaluator CodeQA. Jalankan notebook dari direktori ini agar dataset dan source ditemukan. Notebook merekonstruksi baseline Seq2seq berdasarkan paper dan source terkait.
+Direktori kerja: ~/k15/seq2seq/kc-codeqa-reproduce
+Environment: source ~/k15/.venv/bin/activate
 
-Gunakan Python 3.10 atau 3.11 dengan Jupyter, PyTorch yang mendukung GPU/CUDA VPS, numpy, nltk, tqdm, prettytable, dan nbformat. Evaluasi METEOR membutuhkan Java (`java` di PATH). Pilih kernel environment tersebut dan pastikan GPU tersedia sebelum training.
+Notebook dan runner
 
-`PROFILE = "paper"` menggunakan seluruh dataset Python, maksimal 200 epoch, patience 20. Batas satu sesi 2 jam (`MAX_SESSION_SECONDS`); untuk melanjutkan, jalankan ulang notebook dengan konfigurasi dan `RUN_TAG` sama serta `RESUME = True`. Hasil dan checkpoint tersimpan di `seq2seq_paper_results/`, dan tidak masuk Git. Evaluasi test penuh hanya berjalan setelah training selesai. Gunakan `PROFILE = "smoke"` untuk uji awal.
+- CodeQA_Seq2Seq_Paper.ipynb: reproduksi Seq2seq.
+- CodeQA_CodeBERT_Paper.ipynb dan codebert_training.py: reproduksi CodeBERT–Transformer.
+- CodeQA_CodeBERT_BART_VPS.ipynb dan codebert_bart_training.py: eksperimen frozen CodeBERT dengan decoder BART pretrained.
+- make_report_figures.py: ekspor grafik epoch dan tabel perbandingan untuk laporan; membaca JSON tanpa memuat model.
+- CodeQA_CodeBERT_BART_Finished.ipynb: akan dibuat oleh nbconvert setelah eksekusi aktif selesai normal.
 
-Jika server dipakai bersama, periksa GPU yang tersedia dan pilih satu GPU melalui `CUDA_VISIBLE_DEVICES` sebelum memulai kernel. Profil paper belum diuji pada VPS ini.
+Data dan source rujukan
 
-## CodeBERT + decoder Transformer
+- data/python/: dataset Python resmi, pembagian train/dev/test.
+- references/: source model dan provenance dari CodeQA serta NeuralCodeSum.
+- source/: evaluator CodeQA.
+- requirements-codebert.txt: dependency untuk environment CodeBERT/BART. Matplotlib tersedia pada Python sistem untuk script grafik.
 
-Notebook baru: `CodeQA_CodeBERT_Paper.ipynb`. Runner yang dipakai notebook dan terminal: `codebert_training.py`. Install `requirements-codebert.txt` ke environment PyTorch CUDA yang dipilih. Default satu GPU, 20 epoch, source 400, target 30, beam 10, effective batch 64, microbatch 4, FP16 dan encoder gradient checkpointing. Ini adaptasi memori dari baseline resmi; perubahan numerik dicatat di notebook/config.
+Hasil eksperimen
 
-Uji pertama: `python -u codebert_training.py --profile smoke --run-tag check --micro-batch 1`. Training penuh: `python -u codebert_training.py --profile paper --run-tag v1 --micro-batch 4`. Jalankan di tmux agar tidak bergantung pada laptop. Tidak ada batas dua jam secara default. Resume memakai perintah dan konfigurasi sama; log menampilkan `RESUME confirmed`. Model, optimizer, scheduler, scaler, dan RNG tersimpan. Profil/tag yang sedang berjalan dikunci untuk mencegah dua penulis checkpoint.
+- seq2seq_paper_results/: checkpoint, riwayat, hasil dan notebook report Seq2seq.
+- codebert_paper_results/: checkpoint, riwayat, hasil dan notebook report CodeBERT–Transformer.
+- codebert_bart_results/: checkpoint, riwayat dan hasil eksperimen CodeBERT–BART.
+- report_figures/: PNG/PDF grafik, CSV tabel, report.md dan manifest snapshot; bisa dibuat ulang.
 
-Checkpoint, log dan hasil berada di `codebert_paper_results/`, terpisah dari Seq2seq dan diabaikan Git. Source model + preprocessing resmi disertakan di `references/CodeQA_CodeBERT/` dengan commit, hash dan compatibility patch. Dataset dan evaluator memakai berkas yang sudah ada di paket ini. Training penuh pada GPU VPS belum diverifikasi.
+Direktori hasil juga memuat smoke test. Untuk hasil utama, pilih paper_v1_* pada Seq2seq/CodeBERT dan vps_v1_* pada hybrid. Jangan memindahkan atau menghapus direktori run yang sedang digunakan.
+
+Perintah sehari-hari (dijalankan dari root proyek)
+
+Perbarui grafik: /usr/bin/python3 make_report_figures.py
+Pantau hybrid: tail -F codebert_bart_results/vps_v1_*/training.log
+Baca hasil CodeBERT: cat codebert_paper_results/paper_v1_*/results.json
+Panduan training dan resume hybrid: docs/CodeBERT_BART_README.md
+
+Pengujian CPU (tanpa memakai GPU sharing)
+
+CUDA_VISIBLE_DEVICES="" python tests/test_codebert_training.py
+CUDA_VISIBLE_DEVICES="" python tests/test_codebert_bart_training.py
+/usr/bin/python3 tests/test_make_report_figures.py
+
+Dokumentasi
+
+- docs/CodeBERT_BART_README.md: panduan eksperimen hybrid. Perintah test di panduan memakai tests/test_codebert_bart_training.py.
+- docs/README_before_cleanup.md: README lama, dipertahankan sebagai arsip. Perintah test lama sekarang berada di tests/.
+- docs/cleanup_plan.txt: cakupan cleanup dan batasannya.
+
+Catatan struktur
+
+Notebook dan runner tetap di root: source hash menjadi bagian identitas run dan nbconvert hybrid masih aktif. Perintah training sebelumnya tetap berlaku. Dataset dan hasil tidak dipindah atau dihapus. Cleanup ini hanya dilakukan pada VPS; belum disinkronkan ke laptop atau GitHub.

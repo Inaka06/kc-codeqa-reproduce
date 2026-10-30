@@ -1,0 +1,9 @@
+Cleanup VPS CodeQA
+
+1. Simpan backup dokumen dan test di luar repository.
+2. Pertahankan seluruh runner, notebook, data, reference, dan direktori hasil pada path lama. Hash source runner/notebook menentukan identitas checkpoint, dan nbconvert hybrid masih aktif.
+3. Pindahkan test ke tests/; tambahkan import path root agar perintah test tetap bekerja dari direktori baru.
+4. Pindahkan panduan hybrid ke docs/; simpan README lama dan tulis indeks proyek pada README root.
+5. Jalankan ulang pengujian CPU, cocokkan hash berkas runtime/dataset, dan pastikan proses training tetap aktif.
+
+Tidak menghapus eksperimen, checkpoint, dataset, atau cache. Tidak mengubah laptop atau GitHub.

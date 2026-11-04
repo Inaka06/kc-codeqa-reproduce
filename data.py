@@ -1,13 +1,14 @@
 import json, torch
 from torch.utils.data import Dataset, DataLoader
+import os
 
 class CodeQADataset(Dataset):
-    def __init__(self, lang, split, vocab, max_src, max_tgt):
+    def __init__(self, lang, split, vocab, max_src, max_tgt, root='processed'):
         self.vocab = vocab
         self.max_src = max_src
         self.max_tgt = max_tgt
         self.items = []
-        with open(f'processed/{lang}/{split}.jsonl', encoding='utf-8') as f:
+        with open(os.path.join(root, lang, f'{split}.jsonl'), encoding='utf-8') as f:
             for line in f:
                 r = json.loads(line)
                 src_tokens = r['question'].split() + ['[SEP]'] + r['code'].split()

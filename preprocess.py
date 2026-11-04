@@ -1,4 +1,4 @@
-import json, os
+import json, os, argparse
 from collections import Counter
 
 LANGS = ['java', 'python']
@@ -10,7 +10,7 @@ MAXLEN = {
     'python': {'src': 125, 'tgt': 16},
 }
 
-def read_split(lang, split):
+def read_split(lang, split, limit=None):
     base = os.path.join('data', lang, split)
     with open(os.path.join(base, f'{split}.code'), encoding='utf-8') as fc, \
          open(os.path.join(base, f'{split}.question'), encoding='utf-8') as fq, \
@@ -19,20 +19,17 @@ def read_split(lang, split):
         qs = fq.read().splitlines()
         ans = fa.read().splitlines()
     assert len(codes) == len(qs) == len(ans)
+    if limit is not None:
+        codes = codes[:limit]; qs = qs[:limit]; ans = ans[:limit]
     return codes, qs, ans
 
-def build_vocab(lang):
-    codes, qs, ans = read_split(lang, 'train')
+def build_vocab(lang, limit=None):
+    codes, qs, ans = read_split(lang, 'train', limit)
     counter = Counter()
-    for c in codes:
-        counter.update(c.split())
-    for q in qs:
-        counter.update(q.split())
-    for a in ans:
-        counter.update(a.split())
-    # ensure [SEP] present
+    for c in codes: counter.update(c.split())
+    for q in qs: counter.update(q.split())
+    for a in ans: counter.update(a.split())
     counter['[SEP]'] += 0
-    # top tokens
     most = [t for t, _ in counter.most_common(MAX_VOCAB - len(SPECIALS))]
     vocab = {tok: i for i, tok in enumerate(SPECIALS)}
     for tok in most:
@@ -41,10 +38,16 @@ def build_vocab(lang):
     return vocab, counter
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--smoke', action='store_true')
+    args = ap.parse_args()
+    out_root = 'processed_smoke' if args.smoke else 'processed'
+    limit = 2000 if args.smoke else None
+
     for lang in LANGS:
-        out_dir = os.path.join('processed', lang)
+        out_dir = os.path.join(out_root, lang)
         os.makedirs(out_dir, exist_ok=True)
-        vocab, counter = build_vocab(lang)
+        vocab, counter = build_vocab(lang, limit)
         with open(os.path.join(out_dir, 'vocab.json'), 'w', encoding='utf-8') as f:
             json.dump(vocab, f, ensure_ascii=False)
         config = {
@@ -60,26 +63,21 @@ def main():
             'sep_token': '[SEP]',
             'sep_id': vocab['[SEP]'],
             'source': 'train vocab + p95/p99 lengths',
+            'smoke': args.smoke,
         }
         with open(os.path.join(out_dir, 'config.json'), 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
         for split in ['train', 'dev', 'test']:
-            codes, qs, ans = read_split(lang, split)
+            codes, qs, ans = read_split(lang, split, limit if args.smoke else None)
             path = os.path.join(out_dir, f'{split}.jsonl')
             with open(path, 'w', encoding='utf-8') as f:
                 for i, (c, q, a) in enumerate(zip(codes, qs, ans)):
-                    rec = {
-                        'id': i,
-                        'code': c,
-                        'question': q,
-                        'answer': a,
-                    }
+                    rec = {'id': i, 'code': c, 'question': q, 'answer': a}
                     f.write(json.dumps(rec, ensure_ascii=False) + '\n')
-        # save top-20 vocab freq info
         with open(os.path.join(out_dir, 'vocab_freq_top20.txt'), 'w', encoding='utf-8') as f:
             for tok, cnt in counter.most_common(20):
                 f.write(f'{tok}\t{cnt}\n')
-        print(lang, 'vocab_size=', len(vocab), 'train_tokens=', sum(counter.values()))
+        print(lang, 'vocab_size=', len(vocab), 'out=', out_dir)
 
 if __name__ == '__main__':
     main()

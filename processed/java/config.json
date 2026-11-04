@@ -1,20 +1,3 @@
-{
-  "lang": "java",
-  "vocab_size": 37670,
-  "max_src_len": 417,
-  "max_tgt_len": 23,
-  "specials": [
-    "<pad>",
-    "<unk>",
-    "<bos>",
-    "<eos>",
-    "[SEP]"
-  ],
-  "pad_id": 0,
-  "unk_id": 1,
-  "bos_id": 2,
-  "eos_id": 3,
-  "sep_token": "[SEP]",
-  "sep_id": 4,
-  "source": "train vocab + p95/p99 lengths"
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:d40dcf97148c5f44e1d5e9f1f2e2fa3ba7a4a13483423bb4fbb0fa6822f97e18
+size 334

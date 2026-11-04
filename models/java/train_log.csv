@@ -1,1 +1,3 @@
-epoch,train_loss,dev_loss,dev_bleu,lr,time_s
+version https://git-lfs.github.com/spec/v1
+oid sha256:6e4ac0a66f53d9bb87f8f4981912ea56e08fa161be76f8fbaa5d9511900dbbe9
+size 46

@@ -1,20 +1,3 @@
-{
-  "lang": "python",
-  "vocab_size": 50000,
-  "max_src_len": 125,
-  "max_tgt_len": 16,
-  "specials": [
-    "<pad>",
-    "<unk>",
-    "<bos>",
-    "<eos>",
-    "[SEP]"
-  ],
-  "pad_id": 0,
-  "unk_id": 1,
-  "bos_id": 2,
-  "eos_id": 3,
-  "sep_token": "[SEP]",
-  "sep_id": 4,
-  "source": "train vocab + p95/p99 lengths"
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:a17e13a81ca6069f944f62849077fa2c752d6abf172a7a30a7c75e78ce1ffd2b
+size 336

@@ -11,6 +11,7 @@ from transformers.modeling_outputs import BaseModelOutput
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from train import CodeQADataset, FiDModel  # noqa: E402
 from metrics import compute_all, exact_match, f1_score  # noqa: E402
+from prepare_codesearchnet import canon_hash  # noqa: E402
 
 
 def load_split(args, split, tokenizer):
@@ -48,7 +49,8 @@ def retrieval_report(ds, k, allow_empty):
     short = sum(1 for r in got if len(r) < k)
     same_code = sum(
         1 for i, r in enumerate(got)
-        if any(x.get("code", "").strip() == ds.data[i]["code"].strip() for x in r[:k])
+        if any(canon_hash(x.get("code", "")) == canon_hash(ds.data[i].get("code_original") or ds.data[i]["code"])
+               for x in r[:k])
     )
     rep = {"n": n, "empty": empty, "fewer_than_k": short, "exact_same_code_in_topk": same_code}
     print(f"  Retrieval: kosong={empty}/{n}, <k={short}/{n}, kode identik dgn query={same_code}/{n}")

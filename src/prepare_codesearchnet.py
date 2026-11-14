@@ -20,28 +20,30 @@ def normalize_code(code_str):
     return '\n'.join(line.strip() for line in code_str.split('\n') if line.strip())
 
 
-_TOKEN_RE = re.compile(r"[A-Za-z_]\w*|\d+|\S")
-_SKIP = {"DCNL", "DCSP"}  # penanda newline/indent pada korpus Python asli (jika ada)
+_IDENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_SKIP = {"STRING", "_NUM", "DCNL", "DCSP"}  # penanda literal/newline yang bukan identifier asli
 
 
-def canon_tokens(code_str):
-    """Token kanonik, tidak peka spasi/indentasi/format, dipakai HANYA untuk perbandingan."""
-    return [t for t in _TOKEN_RE.findall(normalize_code(code_str)) if t not in _SKIP]
+def ident_tokens(code_str):
+    """Token identifier (termasuk keyword) setelah docstring/komentar/string/angka dibuang."""
+    return [t for t in _IDENT_RE.findall(normalize_code(code_str)) if t not in _SKIP]
+
+
+def squash(code_str):
+    """Bentuk kanonik untuk perbandingan: identifier digabung tanpa spasi/underscore, huruf kecil."""
+    return ''.join(ident_tokens(code_str)).replace('_', '').lower()
 
 
 def canon_hash(code_str):
-    return hashlib.md5(' '.join(canon_tokens(code_str)).encode('utf-8')).hexdigest()
+    return hashlib.md5(squash(code_str).encode('utf-8')).hexdigest()
 
 
-def shingles(tokens, n=3):
-    if len(tokens) < n:
-        return {' '.join(tokens)}
-    return {' '.join(tokens[i:i + n]) for i in range(len(tokens) - n + 1)}
-
-
-def jaccard(a, b):
-    union = len(a | b)
-    return len(a & b) / union if union else 0.0
+def shingles(sq, n=5):
+    if not sq:
+        return set()
+    if len(sq) < n:
+        return {sq}
+    return {sq[i:i + n] for i in range(len(sq) - n + 1)}
 
 
 def extract_first_sentence(docstring, max_tokens=64):
@@ -89,37 +91,38 @@ def iter_csn_records(local_dir=None):
 def _minhash(sh, num_perm):
     from datasketch import MinHash
     m = MinHash(num_perm=num_perm)
-    m.update_batch([s.encode('utf-8') for s in sh])
+    m.update_batch([x.encode('utf-8') for x in sh])
     return m
 
 
-def build_leak_index(codeqa_codes, num_perm=128, lsh_threshold=0.8):
-    """Index kode CodeQA (unik, kanonik). LSH memakai ambang 0.8 untuk kandidat, lalu diverifikasi 0.9."""
+def build_leak_index(codeqa_codes, num_perm=128, lsh_threshold=0.7):
+    """Index kode CodeQA (unik menurut bentuk squash). LSH memakai ambang lebih longgar untuk kandidat;
+    keputusan akhir memakai estimasi Jaccard MinHash >= near_dup_threshold."""
     from datasketch import MinHashLSH
     uniq = {}
     for c in codeqa_codes:
-        toks = canon_tokens(c)
-        if toks:
-            uniq.setdefault(hashlib.md5(' '.join(toks).encode('utf-8')).hexdigest(), toks)
+        sq = squash(c)
+        if sq:
+            uniq.setdefault(hashlib.md5(sq.encode('utf-8')).hexdigest(), sq)
     lsh = MinHashLSH(threshold=lsh_threshold, num_perm=num_perm)
-    sh_by_key = {}
-    for i, toks in enumerate(uniq.values()):
-        s = shingles(toks)
-        key = str(i)
-        sh_by_key[key] = s
-        lsh.insert(key, _minhash(s, num_perm))
+    mh = {}
+    for i, sq in enumerate(uniq.values()):
+        m = _minhash(shingles(sq), num_perm)
+        mh[str(i)] = m
+        lsh.insert(str(i), m)
     print(f"Indeks leakage: {len(uniq)} kode CodeQA unik")
-    return set(uniq.keys()), lsh, sh_by_key
+    return set(uniq.keys()), lsh, mh
 
 
 # ----------------------------------------------------------------------------- database
 def prepare_csn_database(records, codeqa_codes, output_dir="data/csn_database",
-                         near_dup_threshold=0.9, num_perm=128, max_functions=0):
+                         near_dup_threshold=0.8, num_perm=128, max_functions=0):
     print("\n=== Menyiapkan database CodeSearchNet ===\n")
-    leak_hashes, lsh, sh_by_key = build_leak_index(codeqa_codes, num_perm=num_perm)
+    leak_hashes, lsh, mh = build_leak_index(codeqa_codes, num_perm=num_perm,
+                                            lsh_threshold=max(near_dup_threshold - 0.1, 0.5))
 
     stats = dict(total=0, skipped_empty=0, removed_internal_dup=0, removed_exact_codeqa=0,
-                 removed_near_codeqa=0, final=0)
+                 removed_near_codeqa=0, final=0, near_dup_threshold=near_dup_threshold)
     seen, database = set(), []
 
     for code, doc in records:
@@ -130,12 +133,12 @@ def prepare_csn_database(records, codeqa_codes, output_dir="data/csn_database",
             stats['skipped_empty'] += 1
             continue
         summary = extract_first_sentence(doc, 64)
-        norm = normalize_code(code)
-        toks = canon_tokens(code)
-        if not summary or not norm or not toks:
+        toks = ident_tokens(code)
+        sq = ''.join(toks).replace('_', '').lower()
+        if not summary or not sq:
             stats['skipped_empty'] += 1
             continue
-        h = hashlib.md5(' '.join(toks).encode('utf-8')).hexdigest()
+        h = hashlib.md5(sq.encode('utf-8')).hexdigest()
         if h in seen:
             stats['removed_internal_dup'] += 1
             continue
@@ -143,16 +146,12 @@ def prepare_csn_database(records, codeqa_codes, output_dir="data/csn_database",
         if h in leak_hashes:
             stats['removed_exact_codeqa'] += 1
             continue
-        sh = shingles(toks)
-        near = False
-        for key in lsh.query(_minhash(sh, num_perm)):
-            if jaccard(sh, sh_by_key[key]) >= near_dup_threshold:
-                near = True
-                break
-        if near:
-            stats['removed_near_codeqa'] += 1
-            continue
-        database.append({'code': norm, 'summary': summary, 'code_hash': h})
+        if len(sq) >= 20:
+            m = _minhash(shingles(sq), num_perm)
+            if any(m.jaccard(mh[key]) >= near_dup_threshold for key in lsh.query(m)):
+                stats['removed_near_codeqa'] += 1
+                continue
+        database.append({'code': ' '.join(toks), 'summary': summary, 'code_hash': h})
         if max_functions and len(database) >= max_functions:
             break
 
@@ -176,7 +175,12 @@ def load_codeqa_codes(codeqa_dir="data/codeqa_processed"):
     codes = []
     for split in ('train', 'dev', 'test'):
         with open(d / f"{split}.jsonl", 'r', encoding='utf-8') as f:
-            codes.extend(json.loads(l)['code'] for l in f if l.strip())
+            for l in f:
+                if l.strip():
+                    rec = json.loads(l)
+                    codes.append(rec['code'])
+                    if rec.get('code_original'):
+                        codes.append(rec['code_original'])
     print(f"Memuat {len(codes)} kode CodeQA (train+dev+test)")
     return codes
 
@@ -187,6 +191,8 @@ if __name__ == "__main__":
     p.add_argument("--codeqa_dir", default="data/codeqa_processed")
     p.add_argument("--output_dir", default="data/csn_database")
     p.add_argument("--max_functions", type=int, default=0, help="0 = semua")
+    p.add_argument("--near_threshold", type=float, default=0.8, help="ambang Jaccard shingle karakter")
     a = p.parse_args()
     prepare_csn_database(iter_csn_records(a.local_dir), load_codeqa_codes(a.codeqa_dir),
-                         output_dir=a.output_dir, max_functions=a.max_functions)
+                         output_dir=a.output_dir, max_functions=a.max_functions,
+                         near_dup_threshold=a.near_threshold)

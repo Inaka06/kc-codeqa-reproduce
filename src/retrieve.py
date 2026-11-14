@@ -39,13 +39,13 @@ def main(args):
     with torch.no_grad():
         for s in tqdm(range(0, len(data), args.batch_size)):
             chunk = data[s:s + args.batch_size]
-            enc = tokenizer([it['code'] for it in chunk], max_length=args.max_len, padding=True,
+            enc = tokenizer([(it.get('code_original') or it['code']) for it in chunk], max_length=args.max_len, padding=True,
                             truncation=True, return_tensors='pt')
             enc = {k: v.to(device) for k, v in enc.items()}
             q = model(**enc).last_hidden_state[:, 0, :].float().cpu().numpy()
             scores, indices = index.search(q, fetch)
             for j, it in enumerate(chunk):
-                qh = canon_hash(it['code'])
+                qh = canon_hash(it.get('code_original') or it['code'])
                 retrieved = []
                 for sc, di in zip(scores[j], indices[j]):
                     if di < 0:

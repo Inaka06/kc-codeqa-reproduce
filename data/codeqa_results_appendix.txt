@@ -1,0 +1,564 @@
+
+
+=== PAGE 8 ===
+2625Java Python
+Fluency Correctness Fluency Correctness
+Dev Test Dev Test Dev Test Dev Test
+Seq2seq 2.09 2.21 1.66 1.62 2.23 2.24 1.61 1.63
+Dual Encoder 2.23 2.19 1.79 1.57 2.38 2.44 1.58 1.64
+Transformer 2.37 2.41 1.84 1.75 2.40 2.44 1.70 1.72
+CodeBERT 2.53 2.40 1.92 1.89 2.45 2.50 1.78 1.79
+Table 9: Human evaluation results. Scores of each aspect range from 1 to 3 and higher scores are better.
+public IOContainer append(IOObject[]
+output){
+List<IOObject> newObjects = new
+LinkedList<>();
+for(int i = _NUM; i < output.length;
+i++){
+newObjects.add(output[i]);
+}
+newObjects.addAll(ioObjects);
+return new IOContainer(newObjects);
+}
+Q: What is added to the given ioobjects?
+A: all ioobjects of this container
+Seq2seq: an array
+Dual Encoder: the given objects
+Transformer: a new array
+CodeBERT: an iocontent container
+def get_page_args():
+pages = {}
+for arg in request.args:
+re_match = re.findall("page_(. *)
+", arg)
+if re_match:
+pages[re_match[0]] = int(
+request.args.get(arg))
+return pages
+Q: What does the code get?
+A: page arguments
+Seq2seq: the page
+Dual Encoder: the args
+Transformer: the page of the pages
+CodeBERT: page arguments from the request
+Table 10: Examples of different models’ performance
+on Java and Python datasets.
+thus improving the performance. We see that all
+the models get low Exact Match scores, indicating
+that answering the questions with the same token
+string as the gold answer is rather difﬁcult.
+6.4 Human Performance
+We assess human performance on CodeQA’s devel-
+opment and test sets. Due to the large scale of the
+dataset, we sampled 100 questions from each set
+and asked two experienced programmers to give
+answers according to code snippets on two sets re-
+spectively. To make a comparison between model
+performance and human performance, we pick up
+the best model (CodeBERT) and evaluate its output
+on the same 100 questions. As shown in the lasttwo rows of Tables 7, 8, the model’ performance
+has a signiﬁcant gap compared with human’s.
+6.5 Human Evaluation
+Besides automatic evaluation, we randomly sam-
+pled 100 QA pairs from the development and test
+sets of CodeQA respectively, and asked two pro-
+grammers to evaluate outputs of baselines on two
+sets respectively in the following aspects. Fluency
+measures if an answer is grammatically correct and
+is ﬂuent to read. Correctness measures if an an-
+swer is targeting the given question and code. Each
+reviewer gives a score between 1 and 3 for each
+aspect, with 3 indicating the best quality.
+As shown in Table 9, CodeBERT gets the com-
+petitive performance in most metrics. All models
+get relatively poor performances on the aspect of
+correctness compared with ﬂuency. The low scores
+of correctness indicate that it is quite challenging
+for models to do well in code QA.
+6.6 Qualitative Analysis
+We provide a couple of examples in Table 10 to
+demonstrate the outputs from different baselines
+(more qualitative examples are provided in Ap-
+pendix C). In the Java example, CodeBERT cap-
+tures the key component “io container” while other
+models generate imprecise concepts. As the Python
+code tries to get all arguments of a page, the ﬁrst
+three baselines generate answer either about “page”
+or about “args” while CodeBERT contains both
+concepts. The examples reveal that, in comparison
+to the Seq2seq model and the Transformer model,
+CodeBERT generates more detailed and accurate
+answers.
+7 Conclusion
+In this paper, we build the ﬁrst diverse free-form
+question answering dataset for code by transform-
+ing code comments into QA pairs. We also provide
+several neural baselines, and demonstrate that Cod-
+eQA could lay the foundation for further research
+on QA-based source code comprehension.
+
+=== PAGE 9 ===
+2626For future work, how to expand the number of
+question types and generate more high-quality QA
+pairs are the major challenges. Besides, we will
+explore more powerful QA models to better lever-
+age information from code and capture interaction
+between code and question.
+Acknowledgments
+This work was supported by National Natural Sci-
+ence Foundation of China (61772036), Beijing
+Academy of Artiﬁcial Intelligence (BAAI) and Key
+Laboratory of Science, Technology and Standard in
+Press Industry (Key Laboratory of Intelligent Press
+Media Technology). We appreciate the anonymous
+reviewers for their helpful comments. Xiaojun Wan
+is the corresponding author.
+References
+Wasi Uddin Ahmad, Saikat Chakraborty, Baishakhi
+Ray, and Kai-Wei Chang. 2020. A transformer-
+based approach for source code summarization.
+arXiv preprint arXiv:2005.00653 .
+Uri Alon, Shaked Brody, Omer Levy, and Eran Ya-
+hav. 2018. code2seq: Generating sequences from
+structured representations of code. arXiv preprint
+arXiv:1808.01400 .
+Satanjeev Banerjee and Alon Lavie. 2005. Meteor: An
+automatic metric for mt evaluation with improved
+correlation with human judgments. In Proceedings
+of the acl workshop on intrinsic and extrinsic evalu-
+ation measures for machine translation and/or sum-
+marization , pages 65–72.
+Aakash Bansal, Zachary Eberhart, Lingfei Wu, and
+Collin McMillan. 2021. A neural question answer-
+ing system for basic questions about subroutines.
+arXiv preprint arXiv:2101.03999 .
+Antonio Valerio Miceli Barone and Rico Sennrich.
+2017. A parallel corpus of python functions and
+documentation strings for automated code docu-
+mentation and code generation. arXiv preprint
+arXiv:1707.02275 .
+Danqi Chen. 2018. Neural reading comprehension and
+beyond . Stanford University.
+Richard R Day and Jeong-suk Park. 2005. Developing
+reading comprehension questions. Reading in a for-
+eign language , 17(1):60–73.
+Marie-Catherine De Marneffe, Timothy Dozat, Na-
+talia Silveira, Katri Haverinen, Filip Ginter, Joakim
+Nivre, and Christopher D Manning. 2014. Universal
+stanford dependencies: A cross-linguistic typology.
+InLREC , volume 14, pages 4585–4592.Jacob Devlin, Ming-Wei Chang, Kenton Lee, and
+Kristina Toutanova. 2018. Bert: Pre-training of deep
+bidirectional transformers for language understand-
+ing. arXiv preprint arXiv:1810.04805 .
+Kaustubh D Dhole and Christopher D Manning.
+2020. Syn-qg: Syntactic and shallow seman-
+tic rules for question generation. arXiv preprint
+arXiv:2004.08694 .
+Zhangyin Feng, Daya Guo, Duyu Tang, Nan Duan, Xi-
+aocheng Feng, Ming Gong, Linjun Shou, Bing Qin,
+Ting Liu, Daxin Jiang, et al. 2020. Codebert: A
+pre-trained model for programming and natural lan-
+guages. arXiv preprint arXiv:2002.08155 .
+Michael Flor and Brian Riordan. 2018. A semantic
+role-based approach to open-domain automatic ques-
+tion generation. In Proceedings of the thirteenth
+workshop on innovative use of NLP for building ed-
+ucational applications , pages 254–263.
+Matt Gardner, Joel Grus, Mark Neumann, Oyvind
+Tafjord, Pradeep Dasigi, Nelson Liu, Matthew Pe-
+ters, Michael Schmitz, and Luke Zettlemoyer. 2018.
+Allennlp: A deep semantic natural language process-
+ing platform. arXiv preprint arXiv:1803.07640 .
+Sonia Haiduc, Jairo Aponte, and Andrian Marcus.
+2010. Supporting program comprehension with
+source code summarization. In 2010 acm/ieee 32nd
+international conference on software engineering ,
+volume 2, pages 223–226. IEEE.
+Momchil Hardalov, Todor Mihaylov, Dimitrina
+Zlatkova, Yoan Dinkov, Ivan Koychev, and Preslav
+Nakov. 2020. Exams: A multi-subject high
+school examinations dataset for cross-lingual and
+multilingual question answering. arXiv preprint
+arXiv:2011.03080 .
+Jacob Harer, Chris Reale, and Peter Chin. 2019. Tree-
+transformer: A transformer-based method for cor-
+rection of tree-structured data. arXiv preprint
+arXiv:1908.00449 .
+Pengcheng He, Xiaodong Liu, Jianfeng Gao, and
+Weizhu Chen. 2020. Deberta: Decoding-enhanced
+bert with disentangled attention. arXiv preprint
+arXiv:2006.03654 .
+Karl Moritz Hermann, Tomáš Ko ˇcisk`y, Edward Grefen-
+stette, Lasse Espeholt, Will Kay, Mustafa Suleyman,
+and Phil Blunsom. 2015. Teaching machines to read
+and comprehend. arXiv preprint arXiv:1506.03340 .
+Xing Hu, Ge Li, Xin Xia, David Lo, and Zhi Jin.
+2018a. Deep code comment generation. In 2018
+IEEE/ACM 26th International Conference on Pro-
+gram Comprehension (ICPC) , pages 200–20010.
+IEEE.
+Xing Hu, Ge Li, Xin Xia, David Lo, Shuai Lu, and Zhi
+Jin. 2018b. Summarizing source code with trans-
+ferred api knowledge.
+
+=== PAGE 10 ===
+2627Hamel Husain, Ho-Hsiang Wu, Tiferet Gazit, Miltiadis
+Allamanis, and Marc Brockschmidt. 2019. Code-
+searchnet challenge: Evaluating the state of seman-
+tic code search. arXiv preprint arXiv:1909.09436 .
+Srinivasan Iyer, Ioannis Konstas, Alvin Cheung, and
+Luke Zettlemoyer. 2016. Summarizing source code
+using a neural attention model. In Proceedings
+of the 54th Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers) ,
+pages 2073–2083.
+Tushar Khot, Ashish Sabharwal, and Peter Clark. 2018.
+Scitail: A textual entailment dataset from science
+question answering. In Proceedings of the AAAI
+Conference on Artiﬁcial Intelligence , volume 32.
+Wojciech Kry ´sci´nski, Nitish Shirish Keskar, Bryan Mc-
+Cann, Caiming Xiong, and Richard Socher. 2019.
+Neural text summarization: A critical evaluation.
+arXiv preprint arXiv:1908.08960 .
+Guokun Lai, Qizhe Xie, Hanxiao Liu, Yiming Yang,
+and Eduard Hovy. 2017. Race: Large-scale reading
+comprehension dataset from examinations. arXiv
+preprint arXiv:1704.04683 .
+Alexander LeClair, Sakib Haque, Lingfei Wu, and
+Collin McMillan. 2020. Improved code summariza-
+tion via a graph neural network. In Proceedings of
+the 28th International Conference on Program Com-
+prehension , pages 184–195.
+Alexander LeClair, Siyuan Jiang, and Collin McMillan.
+2019. A neural model for generating natural lan-
+guage summaries of program subroutines. In 2019
+IEEE/ACM 41st International Conference on Soft-
+ware Engineering (ICSE) , pages 795–806. IEEE.
+Chin-Yew Lin. 2004. Rouge: A package for automatic
+evaluation of summaries. In Text summarization
+branches out , pages 74–81.
+Shanshan Liu, Xin Zhang, Sheng Zhang, Hui Wang,
+and Weiming Zhang. 2019a. Neural machine read-
+ing comprehension: Methods and trends. Applied
+Sciences , 9(18):3698.
+Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Man-
+dar Joshi, Danqi Chen, Omer Levy, Mike Lewis,
+Luke Zettlemoyer, and Veselin Stoyanov. 2019b.
+Roberta: A robustly optimized bert pretraining ap-
+proach. arXiv preprint arXiv:1907.11692 .
+Alexander Miller, Adam Fisch, Jesse Dodge, Amir-
+Hossein Karimi, Antoine Bordes, and Jason Weston.
+2016. Key-value memory networks for directly read-
+ing documents. arXiv preprint arXiv:1606.03126 .
+Tri Nguyen, Mir Rosenberg, Xia Song, Jianfeng Gao,
+Saurabh Tiwary, Rangan Majumder, and Li Deng.
+2016. Ms marco: A human generated machine read-
+ing comprehension dataset. In CoCo@ NIPS .Martha Palmer, Daniel Gildea, and Paul Kingsbury.
+2005. The proposition bank: An annotated cor-
+pus of semantic roles. Computational linguistics ,
+31(1):71–106.
+Anusri Pampari, Preethi Raghavan, Jennifer Liang, and
+Jian Peng. 2018. emrqa: A large corpus for ques-
+tion answering on electronic medical records. arXiv
+preprint arXiv:1809.00732 .
+Kishore Papineni, Salim Roukos, Todd Ward, and Wei-
+Jing Zhu. 2002. Bleu: a method for automatic eval-
+uation of machine translation. In Proceedings of the
+40th annual meeting of the Association for Compu-
+tational Linguistics , pages 311–318.
+Luca Pascarella and Alberto Bacchelli. 2017. Classify-
+ing code comments in java open-source software sys-
+tems. In 2017 IEEE/ACM 14th International Confer-
+ence on Mining Software Repositories (MSR) , pages
+227–237. IEEE.
+Matthew E Peters, Mark Neumann, Mohit Iyyer, Matt
+Gardner, Christopher Clark, Kenton Lee, and Luke
+Zettlemoyer. 2018. Deep contextualized word repre-
+sentations. arXiv preprint arXiv:1802.05365 .
+Boyu Qiu, Xu Chen, Jungang Xu, and Yingfei Sun.
+2019. A survey on neural machine reading compre-
+hension. arXiv preprint arXiv:1906.03824 .
+Alec Radford, Karthik Narasimhan, Tim Salimans, and
+Ilya Sutskever. 2018. Improving language under-
+standing by generative pre-training.
+Pranav Rajpurkar, Jian Zhang, Konstantin Lopyrev, and
+Percy Liang. 2016. Squad: 100,000+ questions
+for machine comprehension of text. arXiv preprint
+arXiv:1606.05250 .
+Abigail See, Peter J Liu, and Christopher D Man-
+ning. 2017. Get to the point: Summarization
+with pointer-generator networks. arXiv preprint
+arXiv:1704.04368 .
+Peter Shaw, Jakob Uszkoreit, and Ashish Vaswani.
+2018. Self-attention with relative position represen-
+tations. arXiv preprint arXiv:1803.02155 .
+Yusuke Shido, Yasuaki Kobayashi, Akihiro Yamamoto,
+Atsushi Miyamoto, and Tadayuki Matsumura. 2019.
+Automatic source code summarization with ex-
+tended tree-lstm. In 2019 International Joint Con-
+ference on Neural Networks (IJCNN) , pages 1–8.
+IEEE.
+Ilya Sutskever, Oriol Vinyals, and Quoc V Le. 2014.
+Sequence to sequence learning with neural networks.
+arXiv preprint arXiv:1409.3215 .
+Adam Trischler, Tong Wang, Xingdi Yuan, Justin Har-
+ris, Alessandro Sordoni, Philip Bachman, and Ka-
+heer Suleman. 2016. Newsqa: A machine compre-
+hension dataset. arXiv preprint arXiv:1611.09830 .
+
+=== PAGE 11 ===
+2628Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob
+Uszkoreit, Llion Jones, Aidan N Gomez, Lukasz
+Kaiser, and Illia Polosukhin. 2017. Attention is all
+you need. arXiv preprint arXiv:1706.03762 .
+Yao Wan, Zhou Zhao, Min Yang, Guandong Xu,
+Haochao Ying, Jian Wu, and Philip S Yu. 2018. Im-
+proving automatic source code summarization via
+deep reinforcement learning. In Proceedings of the
+33rd ACM/IEEE International Conference on Auto-
+mated Software Engineering , pages 397–407.
+Bolin Wei, Ge Li, Xin Xia, Zhiyi Fu, and Zhi Jin. 2019.
+Code generation as a dual task of code summariza-
+tion. arXiv preprint arXiv:1910.05923 .
+Ikuya Yamada, Akari Asai, Hiroyuki Shindo, Hideaki
+Takeda, and Yuji Matsumoto. 2020. Luke: deep con-
+textualized entity representations with entity-aware
+self-attention. arXiv preprint arXiv:2010.01057 .
+Juan Zhai, Xiangzhe Xu, Yu Shi, Guanhong Tao,
+Minxue Pan, Shiqing Ma, Lei Xu, Weifeng Zhang,
+Lin Tan, and Xiangyu Zhang. 2020. Cpc: Automat-
+ically classifying and propagating natural language
+comments via program analysis. In Proceedings of
+the ACM/IEEE 42nd International Conference on
+Software Engineering , pages 1359–1371.
+Jian Zhang, Xu Wang, Hongyu Zhang, Hailong Sun,
+and Xudong Liu. 2020. Retrieval-based neural
+source code summarization. In 2020 IEEE/ACM
+42nd International Conference on Software Engi-
+neering (ICSE) , pages 1385–1397. IEEE.
+Daniel Zügner, Tobias Kirschstein, Michele Catasta,
+Jure Leskovec, and Stephan Günnemann. 2021.
+Language-agnostic representation learning of source
+code from structure and context. arXiv preprint
+arXiv:2103.11318 .
+
+=== PAGE 12 ===
+2629A Wh-question Formulation Details
+To generate wh-questions, we ﬁrst parse com-
+ments into dependency trees in the format of Uni-
+versal Dependencies (UD) by using the allennlp
+parser. Dependency trees are syntactic tree struc-
+tures, where syntactic units are connected via links.
+We extract the clause of a verb headed by a few
+dependency nodes which can serve as answers with
+the help of PropBank’s predicate-argument struc-
+ture (SRL). The clause is treated as a combination
+of a subject, an object, the head verb and other
+non-core arguments. Furthermore, the clause can
+be reﬁned with modals, auxiliaries and negations if
+found around the verb. The SRL model is provided
+by Gardner et al. (2018). Then templates in Dhole
+and Manning (2020) are used to generate QA pairs.
+The templates convert What toWho/Whom ,When
+orWhere depending on the named entity of the
+answer. To ensure subject-predicate concord, tem-
+plates modify dotodoes ordidrelying on the tense
+and number of the subject.
+Algorithm 1 illustrates the heuristic rules of de-
+pendency parsing.
+Algorithm 1 Heuristic Rules of DP
+1:fd0; :::; d ng DP(w0:::wn)
+2:fori= 0to n do
+3: ifparent (di)is not null then
+4: dv parent (di)
+5:fA0; :::; A CAU; ATMPg SRL (dv)
+6: subj A0
+7: ifdi2A1then
+8: obj A1
+9: else
+10: obj A2
+11: Ax P(A3; :::; A TMP )
+12: verb fdv; modals; negation g
+13: template deptype di
+14: QA template (subj; obj;
+Ax; verb )
+Then we extract the roles of each predicate oc-
+curred in the comment by the SRL model pro-
+vided by Gardner et al. (2018). Semantic roles
+include the generalized core arguments of predi-
+cates labeled as A0, A1, etc., with a set of adjunct
+modiﬁers. According to Propbank 1.0, the roles
+areproto-agent ,proto-patient ,location ,direction ,
+manner ,extent ,cause , etc. Roles like location ,
+direction are classiﬁed as modiﬁers, which can for-
+mulate our answers. We make use of a set of prede-ﬁned handwritten templates in Dhole and Manning
+(2020), which convert a comment into an inter-
+rogative statement by rearranging the arguments
+according to the modiﬁer.
+Algorithm 2 describes the heuristic rules of se-
+mantic role labeling.
+Algorithm 2 Heuristic Rules of SRL
+1:fSRL 0; :::; SRL sg SRL (w0:::wn)
+2:fori= 0to sdo
+3: ifSRL icontains A 0orA 1and1Am
+then
+4:fA0; :::; A CAU; ATMPg SRL i
+5: ifAx=modifier then
+6: forAx2SRL ido
+7: subj A0
+8: A 
+x P(A3; :::;
+ATMP Ax)
+9: verb fAv; modals;
+negationg
+10: template modifier type
+ Ax
+11: QA template (subj; A x;
+A 
+x; verb )
+B Baseline Details
+•Seq2seq : bidirectional RNN with number of
+layers = 2, hidden size = 512, batch size = 32,
+beam size = 4, learning rate = 0.002, dropout =
+0.2, Adam optimizer (Kingma and Ba, 2014).
+•Dual Encoder : Both the code-info encoder
+and the question-info encoder have 2 layers.
+Other hyper-parameters are same as Seq2seq.
+•Transformer : Transformer model with num-
+ber of layers = 6, number of heads = 8, hidden
+size = 512, batch size = 32, beam size = 4,
+initial learning rate = 0.0001, dropout = 0.2,
+Adam optimizer.
+•CodeBERT : The encoder is the pre-trained
+CodeBERT, while the decoder is a transformer
+structure with number of layers = 6, number
+of heads = 12. Other hyper-parameters: batch
+size = 64, beam size = 10, learning rate = 5e-5,
+Adam optimizer.
+For each of the ﬁrst three models, we train the
+model for a maximum of 200 epochs on a Nvidia
+
+=== PAGE 13 ===
+26301080 Ti GPU and perform early stop if the valida-
+tion performance does not improve for 20 consec-
+utive iterations. We ﬁne-tune CodeBERT for 20
+epochs on 3 Nvidia 1080 Ti GPUs and select the
+checkpoint with best BLEU score.
+C Qualitative Examples
+
+=== PAGE 14 ===
+2631public Select<T> sortAsc(String[] columns){
+for(String column:columns){
+mSortingOrderList.add(column + STRING);
+}
+return this;
+}
+Question : How does the speciﬁed columns sort?
+Answer : in asc order
+Seq2seq: in ascending order
+Dual Encoder: in desc order
+Transformer: in desc order
+CodeBERT: in ascending order
+public static int count(String string, String mark){
+if(!TextUtils.isEmpty(string) && !TextUtils.isEmpty(mark)){
+int count = _NUM;
+int index = string.indexOf(mark);
+while(index != -_NUM){
+count++;
+string = string.substring(index + mark.length());
+index = string.indexOf(mark);
+}
+return count;
+}
+return _NUM;
+}
+Question : What does the code count?
+Answer : how many marks existed in string
+Seq2seq: the string
+Dual Encoder: the number of elements in the string
+Transformer: the number of occurrences of this string
+CodeBERT: the number of times the given string
+public synchronized void create(long seqno)
+throws ReplicatorException, InterruptedException{
+if(file.exists()){
+throw new THLException(STRING + file.getName());
+}
+try{
+dataOutput = new BufferedFileDataOutput(file, bufferSize);
+} catch(IOException e){
+throw new THLException(STRING + file.getName(), e);
+}
+mode = AccessMode.write;
+try{
+write(MAGIC_NUMBER);
+write(MAJOR_VERSION);
+write(MINOR_VERSION);
+write(seqno);
+flush();
+} catch(IOException e){
+throw new THLException(STRING + file.getName(), e);
+}
+baseSeqno = seqno;
+if(logFlushTask != null) logFlushTask.addLogFile(this);
+}
+Question : What does the code create?
+Answer : a new log ﬁle
+Seq2seq: a new instance
+Dual Encoder: a ﬂie
+Transformer: a ﬁle
+CodeBERT: a log ﬁle
+Table 11: Qualitative examples of different models’ performance on Java dataset.
+
+=== PAGE 15 ===
+2632def html_to_xhtml(html):
+try:
+html = html.getroot()
+except AttributeError:
+pass
+prefix = "{%s}" % XHTML_NAMESPACE
+for el in html.iter(etree.Element):
+tag = el.tag
+if tag[0] != ’{’:
+el.tag = prefix + tag
+Question : How do all tags in an html tree convert to xhtml?
+Answer : by moving them to the xhtml namespace
+Seq2seq: recursively
+Dual Encoder: with the given html
+Transformer: using xhtml tags
+CodeBERT: by removing their xhtml namespace
+def table_extend(tables, keep_headers=True):
+from copy import deepcopy
+for ii, t in enumerate(tables[:]):
+t = deepcopy(t)
+if t[0].datatype == ’header’:
+t[0][0].data = t.title
+t[0][0]._datatype = None
+t[0][0].row = t[0][1].row
+if not keep_headers and (ii > 0):
+for c in t[0][1:]:
+c.data = ’’
+if ii == 0:
+table_all = t
+else:
+r1 = table_all[-1]
+r1.add_format(’txt’, row_dec_below=’-’)
+table_all.extend(t)
+table_all.title = None
+return table_all
+Question : What does the code extend?
+Answer : a list of simple tables
+Seq2seq: a table
+Dual Encoder: a list of 0
+Transformer: the tables
+CodeBERT: a list of tables
+def calc_angle(v1, v2, v3):
+v1 = v1 - v2
+v3 = v3 - v2
+return v1.angle(v3)
+Question : What does the code calculate?
+Answer : the angle between 3 vectors representing 3 connected points
+Seq2seq: the angle of the v1
+Dual Encoder: the v2
+Transformer: the angle angle of an error angle
+CodeBERT: the angle between two numbers
+Table 12: Qualitative examples of different models’ performance on Python dataset.

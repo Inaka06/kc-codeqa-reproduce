@@ -1,0 +1,21 @@
+# Untuk RTX 5050 (Blackwell) pasang PyTorch build CUDA 12.8 atau lebih baru, mis.:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu128
+torch>=2.7.0
+transformers>=4.40.0
+datasets>=2.14.0
+accelerate>=0.20.0
+faiss-cpu>=1.7.4
+datasketch>=1.6.4
+sacrebleu>=2.3.0
+nltk>=3.8
+peft>=0.10.0
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+numpy>=1.24.0
+pandas>=2.0.0
+tqdm>=4.65.0
+scikit-learn>=1.3.0
+pyyaml>=6.0
+rank-bm25>=0.2.2
+# opsional (optimizer 8-bit jika OOM): bitsandbytes>=0.43.0
+# data METEOR (sekali saja): python -c "import nltk; nltk.download('wordnet'); nltk.download('omw-1.4')"

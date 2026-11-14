@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(nvidia-smi *)",
+      "Bash(where python *)",
+      "Bash(where pip *)",
+      "Bash(pip install *)",
+      "Bash(tasklist)",
+      "Bash(dir /d/CodeQA_FID_Redcoder/src/)"
+    ]
+  }
+}

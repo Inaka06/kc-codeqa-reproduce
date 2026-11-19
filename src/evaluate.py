@@ -4,6 +4,8 @@ import argparse
 import re
 import string
 import numpy as np
+from collections import Counter
+from common import generate_answers
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
@@ -37,33 +39,26 @@ def compute_f1(prediction, ground_truth):
     pred_toks = normalize_answer(prediction).split()
     gold_toks = normalize_answer(ground_truth).split()
     if len(pred_toks) == 0 or len(gold_toks) == 0:
-        return int(pred_toks == gold_toks)
-    common = set(pred_toks) & set(gold_toks)
-    if len(common) == 0:
-        return 0
-    precision = len(common) / len(pred_toks)
-    recall = len(common) / len(gold_toks)
-    f1 = (2 * precision * recall) / (precision + recall)
-    return f1 * 100
+        return float(pred_toks == gold_toks) * 100
+    num_same = sum((Counter(pred_toks) & Counter(gold_toks)).values())
+    if num_same == 0:
+        return 0.0
+    precision = num_same / len(pred_toks)
+    recall = num_same / len(gold_toks)
+    return (2 * precision * recall) / (precision + recall) * 100
 
 def get_question_type(question):
-    q_lower = question.lower().strip()
-    if q_lower.startswith("what"):
-        return "What"
-    elif q_lower.startswith("how"):
-        return "How"
-    elif q_lower.startswith("where"):
-        return "Where"
-    elif q_lower.startswith("when"):
-        return "When"
-    elif q_lower.startswith("why"):
-        return "Why"
-    elif q_lower.startswith("for what purpose"):
+    q = question.lower().strip()
+    if q.startswith("for what purpose"):
         return "For what purpose"
-    elif q_lower.startswith("does") or q_lower.startswith("is") or q_lower.startswith("are") or q_lower.startswith("can"):
+    words = q.split()
+    first = words[0] if words else ""
+    mapping = {"what": "What", "how": "How", "where": "Where", "when": "When", "why": "Why"}
+    if first in mapping:
+        return mapping[first]
+    if first in {"does", "do", "did", "is", "are", "was", "were", "can", "could", "will", "should"}:
         return "Yes/No"
-    else:
-        return "Other"
+    return "Other"
 
 def get_ans_len_bin(ans):
     words = ans.split()
@@ -143,7 +138,7 @@ def evaluate_predictions(preds, refs, questions, codes):
 
     return metrics, breakdown_results, f1_scores
 
-def run_evaluation(model_path, adapter_path, split="test", num_beams=1, output_prefix="test_greedy"):
+def run_evaluation(model_path, adapter_path, split="test", num_beams=1, output_prefix="test_greedy", batch_size=16):
     print(f"Evaluating {split} set with model {model_path} + adapter {adapter_path} (beams={num_beams})...")
 
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
@@ -158,10 +153,12 @@ def run_evaluation(model_path, adapter_path, split="test", num_beams=1, output_p
         device_map="auto"
     )
 
-    if adapter_path and os.path.exists(adapter_path):
+    if adapter_path:
+        if not os.path.exists(adapter_path):
+            raise FileNotFoundError(f"Adapter tidak ditemukan: {adapter_path} (jangan diam-diam evaluasi base model)")
         model = PeftModel.from_pretrained(base_model, adapter_path)
     else:
-        model = base_model
+        model = base_model  # sengaja evaluasi base model (--adapter_path "")
 
     model.eval()
 
@@ -171,46 +168,16 @@ def run_evaluation(model_path, adapter_path, split="test", num_beams=1, output_p
         for line in f:
             samples.append(json.loads(line))
 
-    preds = []
-    refs = []
-    questions = []
-    codes = []
+    stats_path = "runs/metrics/dataset_stats.json"
+    max_length = 512
+    if os.path.exists(stats_path):
+        with open(stats_path, "r", encoding="utf-8") as f:
+            max_length = json.load(f).get("max_length", 512)  # harus sama dengan saat training
 
-    batch_size = 16
-    for i in range(0, len(samples), batch_size):
-        batch = samples[i:i+batch_size]
-        batch_prompts = [f"### Code\n{item['code']}\n### Question\n{item['question']}\n### Answer\n" for item in batch]
-
-        inputs = tokenizer(batch_prompts, return_tensors="pt", padding=True, truncation=True, max_length=512)
-        inputs = {k: v.to(model.device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            if num_beams > 1:
-                outputs = model.generate(
-                    **inputs,
-                    max_new_tokens=32,
-                    num_beams=num_beams,
-                    do_sample=False,
-                    pad_token_id=tokenizer.pad_token_id,
-                    eos_token_id=tokenizer.eos_token_id
-                )
-            else:
-                outputs = model.generate(
-                    **inputs,
-                    max_new_tokens=32,
-                    do_sample=False,
-                    pad_token_id=tokenizer.pad_token_id,
-                    eos_token_id=tokenizer.eos_token_id
-                )
-
-        for j, out in enumerate(outputs):
-            prompt_len = inputs["input_ids"][j].shape[0]
-            gen_tokens = out[prompt_len:]
-            pred = tokenizer.decode(gen_tokens, skip_special_tokens=True).strip()
-            preds.append(pred)
-            refs.append(batch[j]["answer"])
-            questions.append(batch[j]["question"])
-            codes.append(batch[j]["code"])
+    preds = generate_answers(model, tokenizer, samples, max_length=max_length, batch_size=batch_size, num_beams=num_beams)
+    refs = [x["answer"] for x in samples]
+    questions = [x["question"] for x in samples]
+    codes = [x["code"] for x in samples]
 
     metrics, breakdown, f1_scores = evaluate_predictions(preds, refs, questions, codes)
     print(f"Results ({output_prefix}):", metrics)
@@ -256,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--beams", type=int, default=1)
     parser.add_argument("--prefix", type=str, default="test_greedy")
+    parser.add_argument("--batch_size", type=int, default=16, help="laptop: 8")
     args = parser.parse_args()
 
-    run_evaluation(args.model_path, args.adapter_path, args.split, args.beams, args.prefix)
+    run_evaluation(args.model_path, args.adapter_path, args.split, args.beams, args.prefix, args.batch_size)

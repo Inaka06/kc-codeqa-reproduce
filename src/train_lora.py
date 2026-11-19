@@ -14,7 +14,8 @@ from transformers import (
     TrainingArguments,
     DataCollatorForSeq2Seq
 )
-from peft import LoraConfig, get_peft_model, TaskType, print_trainable_parameters
+from peft import LoraConfig, get_peft_model, TaskType
+from common import build_prompt_ids, generate_answers, MAX_NEW_TOKENS
 import sacrebleu
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -28,35 +29,20 @@ class CodeQADataset(Dataset):
                 self.samples.append(json.loads(line))
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self.eval_batch_size = eval_batch_size
 
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, idx):
         item = self.samples[idx]
-        code = item["code"]
-        question = item["question"]
-        answer = item["answer"]
+        prompt_ids = build_prompt_ids(self.tokenizer, item["code"], item["question"], self.max_length - MAX_NEW_TOKENS)
+        answer_ids = self.tokenizer(item["answer"], add_special_tokens=False)["input_ids"][:MAX_NEW_TOKENS - 1]
+        answer_ids = answer_ids + [self.tokenizer.eos_token_id]
 
-        prompt_prefix = f"### Code\n{code}\n### Question\n{question}\n### Answer\n"
-        full_text = prompt_prefix + answer + self.tokenizer.eos_token
-
-        encoded_prompt = self.tokenizer(prompt_prefix, add_special_tokens=False, truncation=True, max_length=self.max_length)
-        encoded_full = self.tokenizer(full_text, add_special_tokens=True, truncation=True, max_length=self.max_length)
-
-        input_ids = encoded_full["input_ids"]
-        attention_mask = encoded_full["attention_mask"]
-        labels = list(input_ids)
-
-        prompt_len = len(encoded_prompt["input_ids"])
-        for i in range(min(prompt_len, len(labels))):
-            labels[i] = -100
-
-        return {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "labels": labels
-        }
+        input_ids = prompt_ids + answer_ids
+        labels = [-100] * len(prompt_ids) + answer_ids  # loss hanya di jawaban
+        return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}
 
 class CodeQAPaddingCollator:
     def __init__(self, tokenizer):
@@ -68,59 +54,31 @@ class CodeQAPaddingCollator:
         self.tokenizer.padding_side = "right"
         return self.collator(batch)
 
-def compute_dev_bleu(model, tokenizer, dev_jsonl, max_new_tokens=32, batch_size=16):
-    tokenizer.padding_side = "left"
-    model.eval()
-
+def compute_dev_bleu(model, tokenizer, dev_jsonl, max_length=512, max_samples=1000, batch_size=16):
     samples = []
     with open(dev_jsonl, "r", encoding="utf-8") as f:
         for line in f:
             samples.append(json.loads(line))
-
-    preds = []
-    refs = []
-
-    for i in range(0, len(samples), batch_size):
-        batch = samples[i:i+batch_size]
-        prompts = [f"### Code\n{item['code']}\n### Question\n{item['question']}\n### Answer\n" for item in batch]
-        gold = [item["answer"] for item in batch]
-
-        inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, max_length=512)
-        inputs = {k: v.to(model.device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            outputs = model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-                pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id
-            )
-
-        # Decode only generated part
-        for j, out in enumerate(outputs):
-            prompt_len = inputs["input_ids"][j].shape[0]
-            gen_tokens = out[prompt_len:]
-            pred = tokenizer.decode(gen_tokens, skip_special_tokens=True).strip()
-            preds.append(pred)
-            refs.append(gold[j])
-
-    bleu = sacrebleu.corpus_bleu(preds, [refs])
-    return bleu.score, preds
+    if max_samples:  # subset supaya evaluasi per epoch tidak terlalu lama; set None untuk full dev
+        samples = samples[:max_samples]
+    preds = generate_answers(model, tokenizer, samples, max_length=max_length, batch_size=batch_size)
+    refs = [x["answer"] for x in samples]
+    return sacrebleu.corpus_bleu(preds, [refs]).score, preds
 
 class BLEUEvaluationCallback:
-    def __init__(self, model, tokenizer, dev_jsonl, output_dir, patience=3):
+    def __init__(self, model, tokenizer, dev_jsonl, output_dir, patience=3, max_length=512, eval_batch_size=16):
         self.model = model
         self.tokenizer = tokenizer
         self.dev_jsonl = dev_jsonl
         self.output_dir = Path(output_dir)
         self.patience = patience
+        self.max_length = max_length
         self.best_bleu = -1.0
         self.no_improvement_count = 0
 
     def on_evaluate(self, args, state, control, **kwargs):
         logger.info("Computing dev set greedy BLEU for checkpoint selection...")
-        bleu_score, _ = compute_dev_bleu(self.model, self.tokenizer, self.dev_jsonl)
+        bleu_score, _ = compute_dev_bleu(self.model, self.tokenizer, self.dev_jsonl, self.max_length, batch_size=self.eval_batch_size)
         logger.info(f"Dev BLEU: {bleu_score:.2f}")
 
         metrics_path = self.output_dir / "dev_bleu_history.jsonl"
@@ -179,8 +137,10 @@ def main():
         device_map="auto"
     )
 
+    model.config.use_cache = False
     if config["training"].get("gradient_checkpointing", False):
         model.gradient_checkpointing_enable()
+        model.enable_input_require_grads()  # wajib untuk LoRA + gradient checkpointing
 
     # LoRA config
     lora_conf = config["lora"]
@@ -194,10 +154,15 @@ def main():
     )
 
     model = get_peft_model(model, peft_config)
-    print_trainable_parameters()
+    model.print_trainable_parameters()
 
     # Datasets
     max_len = config["training"]["max_length"]
+    stats_path = Path("runs/metrics/dataset_stats.json")
+    if stats_path.exists():  # pakai max_length hasil P99 dari prepare_data.py (sama dengan evaluate.py)
+        max_len = json.load(open(stats_path, encoding="utf-8")).get("max_length", max_len)
+    logger.info(f"Using max_length={max_len}")
+    eval_bs = config["evaluation"]["eval_batch_size"]
     train_dataset = CodeQADataset("runs/processed/train.jsonl", tokenizer, max_length=max_len)
     dev_dataset = CodeQADataset("runs/processed/dev.jsonl", tokenizer, max_length=max_len)
 
@@ -217,6 +182,7 @@ def main():
 
     training_args = TrainingArguments(
         output_dir="runs/checkpoints",
+        per_device_eval_batch_size=eval_bs,
         per_device_train_batch_size=config["training"]["per_device_train_batch_size"],
         gradient_accumulation_steps=config["training"]["gradient_accumulation_steps"],
         learning_rate=config["training"]["learning_rate"],
@@ -257,7 +223,7 @@ def main():
             self.cb.on_evaluate(args, state, control, **kwargs)
 
     if not args.sanity:
-        bleu_cb = BLEUEvaluationCallback(model, tokenizer, "runs/processed/dev.jsonl", "runs", patience=config["evaluation"]["patience"])
+        bleu_cb = BLEUEvaluationCallback(model, tokenizer, "runs/processed/dev.jsonl", "runs", patience=config["evaluation"]["patience"], max_length=max_len, eval_batch_size=eval_bs)
         trainer.add_callback(BLEUCallbackWrapper(bleu_cb))
 
     logger.info("Starting training...")

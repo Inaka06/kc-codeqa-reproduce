@@ -25,11 +25,7 @@ def generate_report():
 
     # Create tables
     # Table 1: Dataset statistics vs Paper
-    stats_data = dataset_stats.get("stats", {
-        "train": {"total_samples": 56085, "unique_codes": 0, "code_overlap_with_train_pct": 100, "answer_repetition_pct": 0, "span_rate_pct": 4.99, "token_match_pct": 12.57},
-        "dev": {"total_samples": 7000, "unique_codes": 0, "code_overlap_with_train_pct": 0, "answer_repetition_pct": 1.17, "span_rate_pct": 4.99, "token_match_pct": 12.57},
-        "test": {"total_samples": 7000, "unique_codes": 0, "code_overlap_with_train_pct": 0, "answer_repetition_pct": 1.56, "span_rate_pct": 4.99, "token_match_pct": 12.57}
-    })
+    stats_data = dataset_stats["stats"]  # error jelas kalau prepare_data.py belum dijalankan
 
     df_stats = pd.DataFrame(stats_data).T
     df_stats.to_csv("runs/tables/dataset_statistics.csv")
@@ -46,7 +42,7 @@ def generate_report():
         {"Model": "Human (100 samples)", "BLEU": 55.96, "ROUGE-L": 59.55, "METEOR": 25.49, "EM": 32.00, "F1": 61.59}
     ]
 
-    qwen_metrics = test_greedy.get("metrics", {"BLEU": 0.0, "ROUGE-L": 0.0, "METEOR": 0.0, "EM": 0.0, "F1": 0.0})
+    qwen_metrics = test_greedy["metrics"]  # error jelas kalau evaluate.py belum dijalankan
     qwen_row = {"Model": "Qwen2.5-Coder-0.5B + LoRA (Greedy)", **qwen_metrics}
 
     all_results = paper_baselines + [qwen_row]
@@ -65,7 +61,7 @@ Mereproduksi pipeline Question Answering untuk pemahaman kode sumber menggunakan
 ## 2. Setup Lingkungan & Konfigurasi
 - **Base Model**: `Qwen/Qwen2.5-Coder-0.5B` (Causal LM, bf16, sdpa)
 - **Metode LoRA**: r=16, alpha=32, dropout=0.05, target modules: `q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`.
-- **Hiperperameter Training**: AdamW, lr 2e-4, weight decay 0.01 (LoRA), batch efektif 64 (micro-batch + gradient accumulation), 10 epoch, early stopping patience 3 epoch berdasarkan BLEU dev.
+- **Hiperparameter Training**: AdamW, lr 2e-4, weight decay 0.01 (LoRA), batch efektif 64 (micro-batch + gradient accumulation), 10 epoch, early stopping patience 3 epoch berdasarkan BLEU dev.
 - **Token Length max_length**: P99 train set dibulatkan ke kelipatan 64 (`{dataset_stats.get('max_length', 512)}`).
 
 ## 3. Statistik Dataset
@@ -91,7 +87,7 @@ Mereproduksi pipeline Question Answering untuk pemahaman kode sumber menggunakan
             report_content += "### Breakdown Berdasarkan Panjang Jawaban & Kode\n"
             report_content += pd.DataFrame(lb).T.to_markdown() + "\n\n"
     else:
-        report_content += "Belum meggenerate data breakdown (jalankan evaluasi penuh).\n\n"
+        report_content += "Belum menggenerate data breakdown (jalankan evaluasi penuh).\n\n"
 
     report_content += """## 6. Analisis & Kesimpulan
 - Perbandingan angka dengan paper menunjukkan performa Qwen2.5-Coder-0.5B + LoRA pada dataset Python CodeQA.

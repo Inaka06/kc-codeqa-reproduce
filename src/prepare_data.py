@@ -33,7 +33,7 @@ def analyze_dataset(data_dir="data/python", tokenizer_name="Qwen/Qwen2.5-Coder-0
     data = {}
     for s in splits:
         data[s] = load_split(data_dir, s)
-        print(f"Split {s}: {len(data[s]['question']} samples")
+        print(f"Split {s}: {len(data[s]['question'])} samples")
 
     # Statistics
     stats = {}

@@ -79,10 +79,19 @@ Mereproduksi pipeline Question Answering untuk pemahaman kode sumber menggunakan
 
     breakdown = test_greedy.get("breakdown", {})
     if breakdown:
-        df_breakdown = pd.DataFrame(breakdown).T
-        report_content += df_breakdown.to_markdown() + "\n\n"
+        # Separate question types vs length bins
+        q_types = ["What", "How", "Where", "When", "Why", "For what purpose", "Yes/No", "Other"]
+        qb = {k: v for k, v in breakdown.items() if k in q_types}
+        lb = {k: v for k, v in breakdown.items() if k not in q_types}
+
+        if qb:
+            report_content += "### Breakdown Berdasarkan Tipe Pertanyaan\n"
+            report_content += pd.DataFrame(qb).T.to_markdown() + "\n\n"
+        if lb:
+            report_content += "### Breakdown Berdasarkan Panjang Jawaban & Kode\n"
+            report_content += pd.DataFrame(lb).T.to_markdown() + "\n\n"
     else:
-        report_content += "Belum ada data breakdown (jalankan evaluasi penuh).\n\n"
+        report_content += "Belum meggenerate data breakdown (jalankan evaluasi penuh).\n\n"
 
     report_content += """## 6. Analisis & Kesimpulan
 - Perbandingan angka dengan paper menunjukkan performa Qwen2.5-Coder-0.5B + LoRA pada dataset Python CodeQA.

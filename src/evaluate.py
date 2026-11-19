@@ -65,6 +65,18 @@ def get_question_type(question):
     else:
         return "Other"
 
+def get_ans_len_bin(ans):
+    words = ans.split()
+    if len(words) <= 3: return "Ans_1-3"
+    elif len(words) <= 8: return "Ans_4-8"
+    else: return "Ans_>8"
+
+def get_code_len_bin(code):
+    words = code.split()
+    if len(words) < 50: return "Code_Short"
+    elif len(words) < 200: return "Code_Medium"
+    else: return "Code_Long"
+
 def evaluate_predictions(preds, refs, questions, codes):
     scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
 
@@ -96,14 +108,18 @@ def evaluate_predictions(preds, refs, questions, codes):
         meteor_scores.append(m_score)
 
         q_type = get_question_type(q)
-        if q_type not in breakdown:
-            breakdown[q_type] = {"preds": [], "refs": [], "em": [], "f1": [], "rouge": [], "meteor": []}
-        breakdown[q_type]["preds"].append(pred)
-        breakdown[q_type]["refs"].append(ref)
-        breakdown[q_type]["em"].append(em * 100)
-        breakdown[q_type]["f1"].append(f1)
-        breakdown[q_type]["rouge"].append(r_score)
-        breakdown[q_type]["meteor"].append(m_score)
+        ans_bin = get_ans_len_bin(ref)
+        code_bin = get_code_len_bin(code)
+
+        for key in [q_type, ans_bin, code_bin]:
+            if key not in breakdown:
+                breakdown[key] = {"preds": [], "refs": [], "em": [], "f1": [], "rouge": [], "meteor": []}
+            breakdown[key]["preds"].append(pred)
+            breakdown[key]["refs"].append(ref)
+            breakdown[key]["em"].append(em * 100)
+            breakdown[key]["f1"].append(f1)
+            breakdown[key]["rouge"].append(r_score)
+            breakdown[key]["meteor"].append(m_score)
 
     metrics = {
         "BLEU": corpus_bleu,

@@ -49,3 +49,8 @@ Dokumentasi
 Catatan struktur
 
 Notebook dan runner tetap di root: source hash menjadi bagian identitas run dan nbconvert hybrid masih aktif. Perintah training sebelumnya tetap berlaku. Dataset dan hasil tidak dipindah atau dihapus. Cleanup ini hanya dilakukan pada VPS; belum disinkronkan ke laptop atau GitHub.
+
+Checkpoint 2
+
+- codeqa_exp/: notebook eksperimen Checkpoint 2 (CodeT5-small, Qwen2.5-Coder-0.5B, uji ketergantungan kode, lintas domain, audit split). Penjelasan tiap notebook ada di codeqa_exp/README.md.
+- codeqa_metrics.py, METRICS.md: evaluator CodeQA yang dipakai codeqa_exp/code/kc_common.py.

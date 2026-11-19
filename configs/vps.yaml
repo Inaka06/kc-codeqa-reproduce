@@ -1,0 +1,7 @@
+training:
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 8
+  effective_batch_size: 64
+  gradient_checkpointing: false
+evaluation:
+  eval_batch_size: 16
